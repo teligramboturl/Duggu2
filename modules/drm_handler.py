@@ -521,6 +521,37 @@ async def drm_handler(bot: Client, m: Message):
                         await m.reply_text(str(e))
                         time.sleep(e.x)
                         continue    
+                        # =======================================================================
+# ADD THIS NEW BLOCK FOR DOCUMENT FILES
+# =======================================================================
+                elif any(ext in url for ext in [".xlsx", ".doc", ".docx", ".ppt", ".pptx"]):
+                    try:
+                        # Get the correct file extension from the URL
+                        ext = url.split('.')[-1]
+                        file_path = f'{namef}.{ext}'
+
+                        # Use requests to download the file directly
+                        response = requests.get(url, stream=True)
+                        response.raise_for_status()  # Raise an exception for bad status codes
+
+                        with open(file_path, 'wb') as f:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                f.write(chunk)
+                        
+                        # Send the downloaded document to the user/channel
+                        copy = await bot.send_document(chat_id=channel_id, document=file_path, caption=cc1)
+                        count += 1
+                        
+                        # Clean up the downloaded file
+                        os.remove(file_path)
+
+                    except Exception as e:
+                        await bot.send_message(channel_id, f'⚠️**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}\n\n<blockquote expandable><i><b>Failed Reason: {str(e)}</b></i></blockquote>', disable_web_page_preview=True)
+                        count += 1
+                        failed_count += 1
+                        continue
+# =======================================================================
+
                     
                 elif 'encrypted.m' in url:    
                     prog = await bot.send_message(channel_id, Show, disable_web_page_preview=True)
